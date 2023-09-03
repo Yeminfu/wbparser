@@ -1,68 +1,47 @@
 
 import puppeteer from "puppeteer";
+import getProductsFromPage from "./tools/getProductsFromPage.js";
+import "dotenv/config"
+import { db_connection } from "./tools/db.js";
+
+console.log(process.env.DB_DATABASE);
+
+
+
+
 (async () => {
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage(); // missing await
-    await page.goto("https://www.wildberries.ru/catalog/obuv/muzhskaya?sort=popular&cardsize=c516x688");
-    await page.waitForSelector('.product-card__link');
 
-    let checkpoint = 0;
-
-
+    let pageN = 1;
     while (true) {
-        await page.evaluate(() => {
-            window.scrollBy(0, 500);
-        })
+        const products = await getProductsFromPage(page, `https://www.wildberries.ru/catalog/obuv/muzhskaya?sort=popular&page=${pageN}`);
 
-        const element = await page.$('footer'); // Замените '#yourElementId' на селектор вашего HTML элемента
-        const elementBoundingBox = await element.boundingBox();
-        const viewportHeight = page.viewport().height;
+        for (let index = 0; index < products.length; index++) {
+            const { link, product_name, rating, count, price: { lower_price, upper_price }, image } = products[index];
 
-        if (
-            elementBoundingBox.y + elementBoundingBox.height >= 0 &&
-            elementBoundingBox.y <= viewportHeight
-        ) {
-            // console.log('Элемент находится в видимой области (viewport)');
-            checkpoint++;
-        } else {
-            // console.log('Элемент не находится в видимой области (viewport)');
-            checkpoint = 0;
+
+            // console.log({
+            //     link, product_name, rating, count, lower_price, upper_price, image
+            // });
+
+            await new Promise(resolve => {
+                db_connection.query(
+                    `INSERT INTO products (link, product_name, rating, count, lower_price, upper_price, image) VALUES (?,?,?,?,?,?,?)`,
+                    [link, product_name, rating, count, lower_price ? lower_price : 0, upper_price ? upper_price : 0, image],
+                    function (err, res) {
+                        if (err) { console.log('err #fkduHy6', err); }
+                        resolve(1);
+                    }
+                );
+            })
+
+            // return;
         }
 
-
-        if (checkpoint > 5) {
-            break;
-        }
-        await new Promise(r => {
-            setTimeout(() => {
-                r()
-            }, 1000);
-        })
+        console.log(`страница ${pageN}, добавили ${products.length}`);
+        pageN++;
     }
 
-    const products = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll('.product-card__link'))
-            .map(({ href }) => href)
-    });
-    console.log('products', products);
-
-
-    // console.log('собрали всех');
 })();
 
-
-
-// document.querySelectorAll('.product-card__link').length
-
-// document.querySelector('.pagination');
-
-// (async () => {
-//     window.scrollTo(0, document.body.scrollHeight);
-// })();
-
-
-// window.pageYOffset || document.documentElement.scrollTop
-// window.innerHeight
-
-
-// 0

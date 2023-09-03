@@ -1,6 +1,6 @@
 export default async function getProductsFromPage(page: any, link: string) {
-    await page.goto(link);
     try {
+        await page.goto(link);
         await page.waitForSelector('.product-card__link', {
             timeout: 10000
         });

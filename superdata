@@ -1,0 +1,11 @@
+
+
+SELECT products.*
+FROM products AS products
+INNER JOIN (
+    SELECT product_name, MIN(id) AS min_id
+    FROM products
+    GROUP BY product_name
+) AS products2
+ON products.product_name = products2.product_name AND products.id = products2.min_id
+ORDER BY products.count DESC

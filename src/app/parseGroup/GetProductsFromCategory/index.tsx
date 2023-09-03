@@ -8,6 +8,9 @@ export default function GetProductsFromCategory() {
         { page: 1, products_count: 45800 }
     ]);
 
+    const startCategory = 3;
+    let startPage = 43;
+
     return <>
         <button className="btn btn-sm btn-outline-dark"
             onClick={async () => {
@@ -22,22 +25,27 @@ export default function GetProductsFromCategory() {
         <button className="btn btn-sm btn-outline-dark"
             onClick={async () => {
 
-                category_loop: for (let categoryIndex = 0; categoryIndex < categories.length; categoryIndex++) {
+                category_loop: for (let categoryIndex = startCategory; categoryIndex < categories.length; categoryIndex++) {
                     const category: any = categories[categoryIndex];
-                    page_looop: for (let page = 1; page < 2000; page++) {
-                        const products = await ParseCategoryPage(
+
+                    page_looop: for (let page = startPage; page < 2000; page++) {
+
+                        const productsFromWB = await ParseCategoryPage(
                             category.link,
-                            page
+                            page,
+                            category.name
                         )
-                        if (products.products?.length) {
-                            const newStore = [{ page: page, products_count: products.products?.length }];
+                        if (productsFromWB.products?.length) {// если есть товары
+                            const newStore = [{ page: page, products_count: productsFromWB.products?.length }];
                             newStore.push(...log);
-                            console.log(`страница: ${page}, получили товаров: ${products.products?.length}, категория: ${category.name}   `);
+
+                            console.log(`страница: ${page}, получили товаров: ${productsFromWB.products?.length}, создано товаров в бд: ${productsFromWB.created} категория: ${category.name}`);
                         } else {
-                            console.log('собрали весь товар с категории');
+                            startPage = 1;
                             continue category_loop;
                         }
                     }
+
                 }
                 console.log('собрали все товары с категории');
             }}
@@ -52,13 +60,14 @@ export default function GetProductsFromCategory() {
     </>
 }
 
-async function ParseCategoryPage(link: string, page: number) {
+async function ParseCategoryPage(link: string, page: number, category_name: string) {
     return await fetch(
         "/api/categories/parse",
         {
             method: "POST",
             body: JSON.stringify({
-                link: `${link}?sort=popular&page=${page}`
+                link: `${link}?sort=popular&page=${page}`,
+                category_nameя: category_name,
             })
         }
     )

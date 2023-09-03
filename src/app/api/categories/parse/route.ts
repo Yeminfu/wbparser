@@ -12,6 +12,13 @@ export async function POST(res: any) {
 
     const products = await getProductsFromPage(page, link);
 
+    if (!products) {
+        await browser.close()
+        return NextResponse.json({
+            success: false,
+        })
+    }
+
     for (let index = 0; index < products.length; index++) {
         const { link, product_name, rating, count, price: { lower_price, upper_price }, image } = products[index];
 

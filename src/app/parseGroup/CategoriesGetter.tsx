@@ -14,14 +14,13 @@ const $log = createStore<any>([])
 export default function CategoriesGetter() {
     const log = useStore($log);
     return <>
-        Берем категории
-        <Getter name="obuv/muzhskaya" setLog={setLog} />
+        <Getter setLog={setLog} />
         <pre>{JSON.stringify({ log, }, null, 2)}</pre>
 
     </>
 }
 
-function Getter(props: { name: string; setLog: any }) {
+function Getter(props: { setLog: any }) {
     return <button className="btn btn-sm btn-outline-dark"
         onClick={async () => {
 
@@ -39,7 +38,7 @@ function Getter(props: { name: string; setLog: any }) {
                 )
                     .then(x => x.json())
                     .then(x => {
-                        console.log(JSON.stringify(x, null, 2));
+                        props.setLog(x)
                         return x;
                     });
 

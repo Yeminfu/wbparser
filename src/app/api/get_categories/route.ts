@@ -54,12 +54,13 @@ export async function POST(res: any) {
 }
 
 function insertCategory(values: { name: string, link: string }): Promise<{ affectedRows: number } | null> {
+    
     return new Promise(resolve => {
         pool.query(
             `INSERT INTO categories (${Object.keys(values)}) VALUES (${Object.values(values).map(() => "?")})`,
             [values.name, values.link],
             function (err: any, res: any) {
-                if (err?.code !== "ER_DUP_ENTRY") {
+                if (err?.code && err?.code !== "ER_DUP_ENTRY") {
                     console.log('err kjdfgb8uY', err);
                 }
                 resolve(res);

@@ -14,7 +14,10 @@ export default function ParseGroup() {
             <CategoriesGetter />
         </div>
         <div className="border border-dark m-2">
-            <GetProductsFromCategory />
+            <GetProductsFromCategory
+                START_CATEGORY={0}
+                START_PAGE={0}
+            />
         </div>
     </>
 }

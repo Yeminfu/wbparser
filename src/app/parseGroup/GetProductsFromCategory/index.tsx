@@ -2,12 +2,16 @@
 
 import { useState } from "react"
 
-export default function GetProductsFromCategory() {
+export default function GetProductsFromCategory(props: {
+    START_CATEGORY: number,
+    START_PAGE: number
+}) {
+
     const [categories, setCategories] = useState([]);
     const [log, setLog] = useState<any>([
     ]);
-    const startCategory = Number(process.env.START_CATEGORY);
-    let startPage = Number(process.env.START_PAGE);
+    const startCategory = Number(props.START_CATEGORY);
+    let startPage = Number(props.START_PAGE);
 
     return <>
         <button className="btn btn-sm btn-outline-dark"
@@ -22,7 +26,6 @@ export default function GetProductsFromCategory() {
 
         <button className="btn btn-sm btn-outline-dark"
             onClick={async () => {
-
                 category_loop: for (let categoryIndex = startCategory; categoryIndex < categories.length; categoryIndex++) {
                     const category: any = categories[categoryIndex];
 

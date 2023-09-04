@@ -6,7 +6,7 @@ import { db_connection } from "./tools/db.js";
 
 (async () => {
     const headless = process.env.HEADLESS;
-    const browser = await puppeteer.launch({ headless: headless });
+    const browser = await puppeteer.launch({ headless: headless, args: ['--no-sandbox'] });
     const page = await browser.newPage(); // missing await
 
     let pageN = 1;

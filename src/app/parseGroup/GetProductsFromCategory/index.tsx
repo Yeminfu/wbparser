@@ -52,11 +52,7 @@ export default function GetProductsFromCategory(props: {
             }}
         >товары со всех категорий</button >
 
-        <button onClick={() => {
-            setLog([{ productsFromWBCount: 123123 }, ...log])
-        }}>
-            ADD LOG
-        </button>
+        
         <div>{log.map((item: any) => item.products_count).join(" | ")}</div>
     </>
 }

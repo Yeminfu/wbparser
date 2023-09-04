@@ -7,7 +7,7 @@ export async function POST(res: any) {
     const { link: parentLink, name: parentName } = await res.json();
     const headless: any = process.env.HEADLESS;
 
-    const browser = await puppeteer.launch({ headless });
+    const browser = await puppeteer.launch({ headless, args: ['--no-sandbox'] });
     const page = await browser.newPage(); // missing await
 
     await page.setViewport({ width: 1920, height: 1080 });

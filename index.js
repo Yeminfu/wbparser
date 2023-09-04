@@ -4,13 +4,9 @@ import getProductsFromPage from "./tools/getProductsFromPage.js";
 import "dotenv/config"
 import { db_connection } from "./tools/db.js";
 
-console.log(process.env.DB_DATABASE);
-
-
-
-
 (async () => {
-    const browser = await puppeteer.launch({ headless: false });
+    const headless = process.env.HEADLESS;
+    const browser = await puppeteer.launch({ headless: headless });
     const page = await browser.newPage(); // missing await
 
     let pageN = 1;

@@ -5,8 +5,9 @@ import puppeteer from "puppeteer";
 export async function POST(res: any) {
 
     const { link: parentLink, name: parentName } = await res.json();
+    const headless: any = process.env.HEADLESS;
 
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch({ headless });
     const page = await browser.newPage(); // missing await
 
     await page.setViewport({ width: 1920, height: 1080 });

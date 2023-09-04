@@ -5,11 +5,9 @@ import { useState } from "react"
 export default function GetProductsFromCategory() {
     const [categories, setCategories] = useState([]);
     const [log, setLog] = useState<any>([
-        { page: 1, products_count: 45800 }
     ]);
-
-    const startCategory = 3;
-    let startPage = 43;
+    const startCategory = Number(process.env.START_CATEGORY);
+    let startPage = Number(process.env.START_PAGE);
 
     return <>
         <button className="btn btn-sm btn-outline-dark"
@@ -67,7 +65,7 @@ async function ParseCategoryPage(link: string, page: number, category_name: stri
             method: "POST",
             body: JSON.stringify({
                 link: `${link}?sort=popular&page=${page}`,
-                category_nameя: category_name,
+                category_name: category_name,
             })
         }
     )

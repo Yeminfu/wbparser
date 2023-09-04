@@ -4,14 +4,11 @@ import { NextResponse } from 'next/server'
 import puppeteer from "puppeteer";
 
 export async function POST(res: any) {
-
     const { link, category_name } = await res.json();
-
+    const headless: any = process.env.HEADLESS;
     const browser = await puppeteer.launch(
         {
-            headless:
-                "new"
-                // false
+            headless: headless
         }
     );
     const page = await browser.newPage(); // missing await

@@ -1,9 +1,12 @@
 export default async function getProductsFromPage(page: any, link: string) {
     try {
         await page.goto(link);
+        console.log('загрузили страницу', link);
+
         await page.waitForSelector('.product-card__link', {
             timeout: 10000
         });
+        console.log('дождались товаров');
 
         let checkpoint = 0;
         while (true) {
@@ -66,7 +69,7 @@ export default async function getProductsFromPage(page: any, link: string) {
 
                 })
         });
-        // console.log('products', products);
+        console.log('получили товары', products?.length);
         return products;
     } catch (error) {
         return null;

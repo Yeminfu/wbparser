@@ -13,6 +13,10 @@ export default function GetProductsFromCategory(props: {
     const startCategory = Number(props.START_CATEGORY);
     let startPage = Number(props.START_PAGE);
 
+    const pushToLog = (string: string) => {
+        setLog([...log, string])
+    }
+
     return <>
         <button className="btn btn-sm btn-outline-dark"
             onClick={async () => {
@@ -42,7 +46,7 @@ export default function GetProductsFromCategory(props: {
                         if (productsFromWB.products?.length) {// если есть товары
                             const newStore = [{ page: page, products_count: productsFromWB.products?.length }];
                             newStore.push(...log);
-
+                            pushToLog(`страница: ${page}, получили товаров: ${productsFromWB.products?.length}, создано товаров в бд: ${productsFromWB.created} категория: ${category.name}`)
                             console.log(`страница: ${page}, получили товаров: ${productsFromWB.products?.length}, создано товаров в бд: ${productsFromWB.created} категория: ${category.name}`);
                         } else {
                             startPage = 1;
@@ -56,7 +60,7 @@ export default function GetProductsFromCategory(props: {
         >товары со всех категорий</button >
 
 
-        <div>{log.map((item: any) => item.products_count).join(" | ")}</div>
+        <pre>{JSON.stringify(log, null, 2)}</pre>
     </>
 }
 

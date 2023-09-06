@@ -26,8 +26,11 @@ export default function GetProductsFromCategory(props: {
 
         <button className="btn btn-sm btn-outline-dark"
             onClick={async () => {
+                console.log('берем все товары');
+
                 category_loop: for (let categoryIndex = startCategory; categoryIndex < categories.length; categoryIndex++) {
                     const category: any = categories[categoryIndex];
+                    console.log('берем категорию', category);
 
                     page_looop: for (let page = startPage; page < 2000; page++) {
 
@@ -52,7 +55,7 @@ export default function GetProductsFromCategory(props: {
             }}
         >товары со всех категорий</button >
 
-        
+
         <div>{log.map((item: any) => item.products_count).join(" | ")}</div>
     </>
 }

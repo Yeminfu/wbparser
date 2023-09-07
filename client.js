@@ -1,7 +1,18 @@
 
 require('dotenv').config();
 
+
+
+// START_PAGE=0
+
 (async () => {
+    console.log(
+        [
+            process.env.START_CATEGORY,
+            process.env.START_PAGE,
+        ]
+    );
+
     const { categoriesFromDB: categories } = await fetch(
         `${process.env.url}/api/categories/get`,
         {
@@ -12,10 +23,10 @@ require('dotenv').config();
     // console.log('categories', Object.keys(categories));
 
 
-    category_loop: for (let categoryIndex = 0; categoryIndex < categories.length; categoryIndex++) {
+    category_loop: for (let categoryIndex = process.env.START_CATEGORY; categoryIndex < categories.length; categoryIndex++) {
         const category = categories[categoryIndex];
 
-        page_looop: for (let page = 1; page < 2000; page++) {
+        page_looop: for (let page = process.env.START_PAGE; page < 2000; page++) {
 
             const productsFromWB = await ParseCategoryPage(
                 category.link,

@@ -1,8 +1,8 @@
-import ParseGroup from './parseGroup/ParseGroup'
+import ParseGroup from './tools/parseGroup/ParseGroup'
 
 export default function Home() {
   return (
-    <main >   
+    <main >
       <ParseGroup START_CATEGORY={Number(process.env.START_PAGE)} START_PAGE={Number(process.env.START_PAGE)} />
     </main>
   )

@@ -33,8 +33,8 @@ async function getCategoriesFromDB(): Promise<CategoryInterface[]> {
 async function getStatusAndBreadcrumbs(link: string) {
   const headless: any = process.env.HEADLESS;
   const browser = await puppeteer.launch({
-    headless: false,
-    //  args: ["--no-sandbox"]
+    headless,
+     args: ["--no-sandbox"]
   });
   const page = await browser.newPage(); // missing await
 

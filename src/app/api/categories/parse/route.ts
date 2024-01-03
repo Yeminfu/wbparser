@@ -1,60 +1,109 @@
-import { pool } from '@/app/tools/db';
-import getProductsFromPage from '@/app/tools/getProductsFromPage';
-import { NextResponse } from 'next/server'
+// import { pool } from "@/app/tools/db";
+// import getProductsFromPage from "@/app/tools/getProductsFromPage";
+import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
 export async function POST(res: any) {
-    const { link, category_name } = await res.json();
-    const headless: any = process.env.HEADLESS;
-    const browser = await puppeteer.launch(
-        { headless, args: ['--no-sandbox'] }
-    );
-    const page = await browser.newPage(); // missing await
+  const { link, category_name } = await res.json();
 
-    const products = await getProductsFromPage(page, link);
+  console.log("парсим категорию", link);
 
-    if (!products) {
-        await browser.close()
-        return NextResponse.json({
-            success: false,
-            error: "#sjfhyTn"
-        })
-    }
+  const headless: any = process.env.HEADLESS;
+  const browser = await puppeteer.launch({
+    headless: false,
+    //  args: ["--no-sandbox"]
+  });
+  const page = await browser.newPage(); // missing await
 
-    const category_id = await new Promise(resolve => {
-        pool.query(`SELECT * FROM categories WHERE name = ?`, [category_name],
-            function (err, res: any) {
-                if (err) { console.log('err #hvyftrgT', err); }
-                resolve(res?.pop()?.id)
-            }
-        )
-    })
+  await page.goto(link);
 
-    let created = 0;
+  await page.waitForSelector("title", {
+    timeout: 10000,
+  });
 
-    for (let index = 0; index < products.length; index++) {
-        const { link, product_name, rating, count, price: { lower_price, upper_price }, image } = products[index];
+  //   console.log("загрузилось");
 
-        await new Promise(resolve => {
-            pool.query(
-                `INSERT INTO products (link, product_name, rating, count, lower_price, upper_price, image, category) VALUES (?,?,?,?,?,?,?,?)`,
-                [link, product_name, rating, count, lower_price ? lower_price : 0, upper_price ? upper_price : 0, image, category_id],
-                function (err: any, res: any) {
-                    if (err) { console.log('err #fkduHy6', err); }
-                    if (res) {
-                        created++;
-                    }
-                    resolve(1);
-                }
-            );
-        })
-    }
+  const subcategories = await page.$(
+    ".menu-catalog__list-2.maincatalog-list-2 a"
+  );
+  if (subcategories) {
+    // console.log("есть подкатегории");
+    const categories = await page.evaluate(() => {
+      return Array.from(
+        document.querySelectorAll(".menu-catalog__list-2.maincatalog-list-2 a")
+      ).map(({ href, innerText }: any) => ({
+        href,
+        innerText,
+      }));
+    });
 
-    await browser.close()
+    // console.log(
+    //   `Это родительская категория, в ней подкатегорий: `,
+    //   categories.length
+    // );
+
+    await browser.close();
 
     return NextResponse.json({
-        success: true,
-        products,
-        created
-    })
+      success: true,
+      type: "category",
+      categories: categories,
+    });
+  } else {
+    console.log("нет подкатегорий");
+  }
+
+  //   try {
+  //     await page.waitForSelector(".menu-catalog__list-2.maincatalog-list-2 a", {
+  //       timeout: 10000,
+  //     });
+  //     await page.evaluate(() => {
+  //       window.scrollBy(0, 500);
+  //     });
+  //     const categories = await page.evaluate(() => {
+  //       return Array.from(
+  //         document.querySelectorAll(".menu-catalog__list-2.maincatalog-list-2 a")
+  //       ).map(({ href, innerText }: any) => ({
+  //         href,
+  //         innerText,
+  //       }));
+  //     });
+
+  //     console.log(
+  //       `Это родительская категория, в ней подкатегорий: `,
+  //       categories.length
+  //     );
+
+  //     await page.close();
+
+  //     return NextResponse.json({
+  //       success: true,
+  //       type: "category",
+  //       categories: categories,
+  //     });
+  //   } catch (error) {
+  //     // console.log("err #f8fj", error);
+  //   }
+
+  //   console.log("Это дочерняя категория в ней товаров:", null);
+
+  await browser.close();
+
+  return NextResponse.json({
+    type: "products",
+    products: [],
+    success: true,
+  });
+
+  //   console.log();
 }
+
+// function getSubcategories() {
+//   const menuItemsNodes = Array.from(
+//     document.querySelectorAll(".menu-catalog__list-2.maincatalog-list-2 a")
+//   ).map(({ href, innerText }) => ({
+//     href,
+//     innerText,
+//   }));
+
+// }

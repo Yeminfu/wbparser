@@ -3,30 +3,15 @@ import { CategoryInterface } from "@/app/types/category";
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
-export async function POST() {
-  const categoriesFromDB = await getCategoriesFromDB();
+export async function POST(response: NextResponse) {
+  const { link } = await response.json();
 
-  for (let index = 0; index < categoriesFromDB.length; index++) {
-    const category = categoriesFromDB[index];
-    console.log(index, category.link);
-    await getStatusAndBreadcrumbs(category.link);
-    // break;
-  }
+  console.log(link);
+
+  const status = await getStatusAndBreadcrumbs(link);
 
   return NextResponse.json({
-    success: true,
-    categoriesFromDB,
-  });
-}
-
-async function getCategoriesFromDB(): Promise<CategoryInterface[]> {
-  return await new Promise((resolve) => {
-    pool.query(`SELECT * FROM categories`, function (err: any, res: any) {
-      if (err) {
-        console.log("err #k3mhHuT", err);
-      }
-      resolve(res);
-    });
+    ...status,
   });
 }
 
@@ -34,11 +19,16 @@ async function getStatusAndBreadcrumbs(link: string) {
   const headless: any = process.env.HEADLESS;
   const browser = await puppeteer.launch({
     headless,
-     args: ["--no-sandbox"]
+    args: ["--no-sandbox"],
   });
   const page = await browser.newPage(); // missing await
 
   await page.goto(link);
+
+  let status: {
+    type: "parent_category_a" | "products" | "not_found";
+    breadcrumbs?: string;
+  } = { type: "parent_category_a" };
 
   try {
     await page.waitForSelector("title", {
@@ -53,7 +43,6 @@ async function getStatusAndBreadcrumbs(link: string) {
   );
 
   if (subcategoriesA) {
-    // console.log("есть подкатегории");
     const categories = await page.evaluate(() => {
       return Array.from(
         document.querySelectorAll(".menu-catalog__list-2.maincatalog-list-2 a")
@@ -63,6 +52,7 @@ async function getStatusAndBreadcrumbs(link: string) {
       }));
     });
     console.log("Есть подкатегории", categories.length);
+    status = { type: "parent_category_a" };
   } else {
     console.log("нет подкатегорий");
   }
@@ -70,6 +60,7 @@ async function getStatusAndBreadcrumbs(link: string) {
   const products = await page.$(".product-card__wrapper");
   if (products) {
     console.log("есть товары");
+    status = { type: "products" };
   } else {
     console.log("нет товаров");
   }
@@ -79,12 +70,29 @@ async function getStatusAndBreadcrumbs(link: string) {
 
     const subcategoriesB = await page.$(".menu-category__subcategory");
     console.log("Есть subcategoriesB", !!subcategoriesB);
+    if (subcategoriesB) status = { type: "parent_category_a" };
 
     const notFound = await page.$(".not-found-result__title");
+    if (notFound) status = { type: "not_found" };
     console.log("Есть notFound", !!notFound);
   }
+
+  const breadCrumbs = await page.evaluate(() => {
+    const node: any = document.querySelector(".breadcrumbs__container");
+    if (node) {
+      return node.innerText.replace(/\n/gim, "/");
+    }
+    return null;
+  });
+  // document.querySelector('.breadcrumbs__container').innerText
 
   //   if (!subcategoriesA && !products) console.log(">>>ATTENTION<<<");
 
   await browser.close();
+
+  // console.log({breadCrumbs});
+
+  status.breadcrumbs = breadCrumbs;
+
+  return status;
 }

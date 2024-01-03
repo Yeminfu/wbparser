@@ -1,10 +1,8 @@
-import { pool } from "@/app/tools/db";
-import { CategoryInterface } from "@/app/types/category";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
-export async function POST(response: NextResponse) {
-  const { link } = await response.json();
+export async function POST(request: NextRequest) {
+  const { link } = await request.json();
 
   console.log(link);
 

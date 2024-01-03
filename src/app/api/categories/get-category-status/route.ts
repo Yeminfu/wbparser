@@ -1,96 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
+import getStatusAndBreadcrumbs from "./getStatusAndBreadcrumbs";
+import { pool } from "@/app/tools/db";
 
 export async function POST(request: NextRequest) {
-  const { link } = await request.json();
+  const { link, category_id } = await request.json();
 
   console.log(link);
-
   const status = await getStatusAndBreadcrumbs(link);
+  const data = await updateCategory(category_id, status);
+  console.log("status", status);
 
   return NextResponse.json({
     ...status,
   });
 }
 
-async function getStatusAndBreadcrumbs(link: string) {
-  const headless: any = process.env.HEADLESS;
-  const browser = await puppeteer.launch({
-    headless,
-    args: ["--no-sandbox"],
-  });
-  const page = await browser.newPage(); // missing await
-
-  await page.goto(link);
-
-  let status: {
+async function updateCategory(
+  category_id: number,
+  data: {
     type: "parent_category_a" | "products" | "not_found";
     breadcrumbs?: string;
-  } = { type: "parent_category_a" };
-
-  try {
-    await page.waitForSelector("title", {
-      timeout: 10000,
-    });
-  } catch (error) {
-    console.log("НЕ ЗАГРУЗИЛСЯ ТАЙТЛ");
+    title?: string | null;
   }
+) {
+  // console.log("category_id", category_id);
+  // console.log("datadatadata", data);
 
-  const subcategoriesA = await page.$(
-    ".menu-catalog__list-2.maincatalog-list-2 a"
+  console.log(
+    `UPDATE categories SET name = ${data.title}, bread_crumbs = ${data.breadcrumbs}, status = ${data.type}`
   );
 
-  if (subcategoriesA) {
-    const categories = await page.evaluate(() => {
-      return Array.from(
-        document.querySelectorAll(".menu-catalog__list-2.maincatalog-list-2 a")
-      ).map(({ href, innerText }: any) => ({
-        href,
-        innerText,
-      }));
+  return pool
+    .promise()
+    .query(
+      "UPDATE categories SET name = ?, bread_crumbs = ?, status = ? WHERE id = ?",
+      [data.title, data.breadcrumbs, data.type, category_id]
+    )
+    .then((x) => {
+      console.log("success", x);
+    })
+    .catch((x) => {
+      console.log("error #dod9", x);
     });
-    console.log("Есть подкатегории", categories.length);
-    status = { type: "parent_category_a" };
-  } else {
-    console.log("нет подкатегорий");
-  }
-
-  const products = await page.$(".product-card__wrapper");
-  if (products) {
-    console.log("есть товары");
-    status = { type: "products" };
-  } else {
-    console.log("нет товаров");
-  }
-
-  if (!subcategoriesA && !products) {
-    console.log(">>>ATTENTION<<<");
-
-    const subcategoriesB = await page.$(".menu-category__subcategory");
-    console.log("Есть subcategoriesB", !!subcategoriesB);
-    if (subcategoriesB) status = { type: "parent_category_a" };
-
-    const notFound = await page.$(".not-found-result__title");
-    if (notFound) status = { type: "not_found" };
-    console.log("Есть notFound", !!notFound);
-  }
-
-  const breadCrumbs = await page.evaluate(() => {
-    const node: any = document.querySelector(".breadcrumbs__container");
-    if (node) {
-      return node.innerText.replace(/\n/gim, "/");
-    }
-    return null;
-  });
-  // document.querySelector('.breadcrumbs__container').innerText
-
-  //   if (!subcategoriesA && !products) console.log(">>>ATTENTION<<<");
-
-  await browser.close();
-
-  // console.log({breadCrumbs});
-
-  status.breadcrumbs = breadCrumbs;
-
-  return status;
 }

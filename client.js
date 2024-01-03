@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-// START_PAGE=0
+const START_PAGE = process.env.START_PAGE;
 
 (async () => {
   const { categoriesFromDB: categories } = await fetch(
@@ -10,10 +10,10 @@ require("dotenv").config();
     }
   ).then((x) => x.json());
 
-  for (let index = 8; index < categories.length; index++) {
+  for (let index = START_PAGE; index < categories.length; index++) {
     const category = categories[index];
     try {
-      const data = await getCategoryData(category.link);
+      const data = await getCategoryData(category.link, category.id);
       console.log("data", index, data, category.link);
     } catch (error) {
       console.log("error #z0z9", error);
@@ -21,11 +21,11 @@ require("dotenv").config();
   }
 })();
 
-async function getCategoryData(link) {
+async function getCategoryData(link, category_id) {
   // console.log('get', link);
   return fetch(`${process.env.url}/api/categories/get-category-status`, {
     method: "POST",
-    body: JSON.stringify({ link }),
+    body: JSON.stringify({ link, category_id }),
   })
     .then((x) => x.json())
     .then((x) => {
